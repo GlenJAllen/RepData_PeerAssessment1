@@ -38,7 +38,7 @@ mean(steps.by.day$steps, na.rm = TRUE)
 
 The median:
 ```{r}
-median(activity$steps, na.rm = TRUE)
+median(steps.by.day$steps, na.rm = TRUE)
 ```
 
 ### What is the average daily activity pattern?
