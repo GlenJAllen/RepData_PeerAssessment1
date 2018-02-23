@@ -51,11 +51,11 @@ mean(steps.by.day$steps, na.rm = TRUE)
 The median:
 
 ```r
-median(activity$steps, na.rm = TRUE)
+median(steps.by.day$steps, na.rm = TRUE)
 ```
 
 ```
-## [1] 0
+## [1] 10395
 ```
 
 ### What is the average daily activity pattern?
@@ -215,4 +215,4 @@ imputed.activity %>%
 ```
 
 ![](PA1_template_files/figure-html/unnamed-chunk-12-1.png)<!-- -->
-
+Yes there are differences.
