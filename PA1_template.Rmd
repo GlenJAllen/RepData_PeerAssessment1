@@ -1,25 +1,125 @@
 ---
 title: "Reproducible Research: Peer Assessment 1"
+author: "GJAllen"
 output: 
   html_document:
     keep_md: true
+    toc: true
+    toc_float: true
 ---
 
+### Loading and preprocessing the data
+Just reading in the data, but let's also require some packages that I like.
 
-## Loading and preprocessing the data
+```{r}
+library(data.table)
+library(dplyr, warn.conflicts = FALSE)
+library(ggplot2, warn.conflicts = FALSE)
+library(magrittr, warn.conflicts = FALSE)
+activity <- data.table::fread("activity.csv") %>% 
+  mutate(date = as.Date(date))
+head(activity)
+```
 
+### What is mean total number of steps taken per day?
+Let's first make a histogram:
+```{r}
+steps.by.day <- activity %>% 
+  group_by(date) %>% 
+  summarize(steps = sum(steps, na.rm = TRUE))
+  
+hist(steps.by.day$steps, breaks = 10, xlab = "Total Steps per Day", main = "Total Steps per Day")
+```
 
+The mean:
+```{r}
+mean(steps.by.day$steps, na.rm = TRUE)
+```
 
-## What is mean total number of steps taken per day?
+The median:
+```{r}
+median(activity$steps, na.rm = TRUE)
+```
 
+### What is the average daily activity pattern?
+Let's have a look first at the pattern (sorry I'm really stretching).
+```{r}
+interval.aggregate <- activity %>% 
+  group_by(interval) %>% 
+  summarize(steps = mean(steps, na.rm = TRUE))
+ggplot(interval.aggregate) +
+  aes(interval, steps) +
+  geom_line()
+```
 
+And now for the maximum (it's interval 835):
+```{r}
+filter(interval.aggregate, steps == max(steps))
+```
 
-## What is the average daily activity pattern?
+### Imputing missing values
+The total number of missing values (it looks like there are 2304 missing values for steps):
+```{r}
+colSums(is.na(activity))
+```
 
+Let's impute the missing values. In this case, we'll just use the average value for each interval.
+```{r}
+imputed.activity <- interval.aggregate %>% 
+  rename(average.steps = steps) %>% 
+  right_join(activity, "interval") %>% 
+  mutate(steps = ifelse(is.na(steps), average.steps, steps)) %>% 
+  select(-average.steps)
+```
 
+Now the histogram, mean, and median:
+```{r}
+steps.by.day.imputed <- activity %>% 
+  group_by(date) %>% 
+  summarize(steps = sum(steps, na.rm = TRUE))
 
-## Imputing missing values
+hist(steps.by.day.imputed$steps, breaks = 10, xlab = "Total Steps per Day", 
+     main = "Total Steps per Day")
+mean(steps.by.day.imputed$steps)
+median(steps.by.day.imputed$steps)
+```
 
+Due to our particular choice of "imputation" method, we don't find that there's 
+any difference.  
+This is because there are an equal number of missing and non-
+missing values for each interval:
+```{r}
+activity %>% group_by(missing.steps = is.na(steps), interval) %>% 
+  count %>% 
+  group_by(missing.steps) %>% 
+  do(head(., 3)) 
 
+activity %>% group_by(missing.steps = is.na(steps), interval) %>% 
+  count %>% 
+  ungroup %>%
+  select(missing.steps, n) %>% 
+  unique
+```
 
-## Are there differences in activity patterns between weekdays and weekends?
+### Are there differences in activity patterns between weekdays and weekends?
+Let's add the weekday indicator:
+```{r}
+imputed.activity %<>% 
+  mutate(weekday = weekdays(date),
+         weekday = ifelse(weekday %in% c("Saturday", "Sunday"), 
+                          "Weekend",
+                          "Weekday"))
+5/7
+prop.table(table(imputed.activity$weekday))
+```
+It looks pretty reasonable.  Now lets add make the panel plot:
+```{r}
+imputed.activity %>%
+  group_by(weekday, interval) %>% 
+  summarize(steps = mean(steps, na.rm = TRUE)) %>% 
+  ggplot() +
+  aes(interval, steps) +
+  geom_line() +
+  facet_wrap(~ weekday)
+```
+Yes there are differences.
