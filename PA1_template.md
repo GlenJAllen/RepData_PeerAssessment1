@@ -30,6 +30,7 @@ Let's first make a histogram:
 
 ```r
 steps.by.day <- activity %>% 
+  filter(!is.na(steps)) %>% 
   group_by(date) %>% 
   summarize(steps = sum(steps, na.rm = TRUE))
   
@@ -45,7 +46,7 @@ mean(steps.by.day$steps, na.rm = TRUE)
 ```
 
 ```
-## [1] 9354.23
+## [1] 10766.19
 ```
 
 The median:
@@ -55,7 +56,7 @@ median(steps.by.day$steps, na.rm = TRUE)
 ```
 
 ```
-## [1] 10395
+## [1] 10765
 ```
 
 ### What is the average daily activity pattern?

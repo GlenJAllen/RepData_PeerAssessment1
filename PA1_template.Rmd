@@ -25,6 +25,7 @@ head(activity)
 Let's first make a histogram:
 ```{r}
 steps.by.day <- activity %>% 
+  filter(!is.na(steps)) %>% 
   group_by(date) %>% 
   summarize(steps = sum(steps, na.rm = TRUE))
   
