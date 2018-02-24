@@ -74,7 +74,7 @@ imputed.activity <- interval.aggregate %>%
 
 Now the histogram, mean, and median:
 ```{r}
-steps.by.day.imputed <- activity %>% 
+steps.by.day.imputed <- imputed.activity %>% 
   group_by(date) %>% 
   summarize(steps = sum(steps, na.rm = TRUE))
 
@@ -84,22 +84,7 @@ mean(steps.by.day.imputed$steps)
 median(steps.by.day.imputed$steps)
 ```
 
-Due to our particular choice of "imputation" method, we don't find that there's 
-any difference.  
-This is because there are an equal number of missing and non-
-missing values for each interval:
-```{r}
-activity %>% group_by(missing.steps = is.na(steps), interval) %>% 
-  count %>% 
-  group_by(missing.steps) %>% 
-  do(head(., 3)) 
-
-activity %>% group_by(missing.steps = is.na(steps), interval) %>% 
-  count %>% 
-  ungroup %>%
-  select(missing.steps, n) %>% 
-  unique
-```
+There are differences.
 
 ### Are there differences in activity patterns between weekdays and weekends?
 Let's add the weekday indicator:
@@ -121,5 +106,6 @@ imputed.activity %>%
   aes(interval, steps) +
   geom_line() +
   facet_wrap(~ weekday)
-```
+```  
+  
 Yes there are differences.
